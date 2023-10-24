@@ -599,4 +599,7 @@ export default class StoreHandle {
         await this.repos.messageDics.clear();
         await this.repos.messages.clear();
     };
+    closeDB = async () => {
+       await this.ds.destroy();
+    };
 }
