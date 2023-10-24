@@ -197,25 +197,36 @@ export default class StoreHandle {
                        messages: newMessages,
                        isLatest,
                    }) => {
-                isLatest &&
-                (await Promise.all([
-                    async () =>
-                        await this.repos.messageDics.remove(
-                            await this.repos.messageDics.findBy({
-                                DBAuth: {id: this.auth.id},
-                            })
-                        ),
-                    async () =>
-                        await this.repos.chats.remove(
-                            await this.repos.chats.findBy({DBAuth: {id: this.auth.id}})
-                        ),
-                ]));
+
+                if(isLatest){
+                    await this.repos.chats.remove(
+                        await this.repos.chats.findBy({DBAuth: {id: this.auth.id}})
+                    )
+
+                    await this.repos.messageDics.remove(
+                        await this.repos.messageDics.findBy({DBAuth: {id: this.auth.id}})
+                    )
+                }
+
+
 
                 const oldContacts = await this.contactsUpsert(newContacts);
                 await this.repos.contacts.delete({
                     id: In(Array.from(oldContacts)),
                     DBAuth: {id: this.auth.id},
                 });
+
+                try {
+                    for (const chat of newChats) {
+                        await this.repos.chats.upsert(
+                            {...chat, DBAuth: {id: this.auth.id}},
+                            {
+                                conflictPaths: ["id", "DBAuth"],
+                            }
+                        );
+                    }
+                } catch {
+                }
 
                 for (const msg of newMessages) {
                     const jid = msg.key.remoteJid!,
@@ -253,16 +264,16 @@ export default class StoreHandle {
                 }
             }
         });
-        ev.on("chats.upsert", (newChats) => {
+        ev.on("chats.upsert", async (newChats) => {
             try {
-                newChats.forEach((chat) => {
-                    this.repos.chats.upsert(
+                for (const chat of newChats) {
+                    await this.repos.chats.upsert(
                         {...chat, DBAuth: {id: this.auth.id}},
                         {
                             conflictPaths: ["id", "DBAuth"],
                         }
                     );
-                });
+                }
             } catch {
             }
         });
