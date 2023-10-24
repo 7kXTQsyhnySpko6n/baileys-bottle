@@ -21,12 +21,12 @@ TypeORM currently supports:
 ## Installation
 
 ```bash
-npm install baileys-bottle-new
+npm install baileys-bottle-plus
 ```
 
 ## Usage
 
-Take a look at the information in the [example folder](https://github.com/lucassaud/baileys-bottle-new/blob/master/src/example/)
+Take a look at the information in the [example folder](https://github.com/lucassaud/baileys-bottle-plus/blob/master/src/example/)
 
 ## I wanna tweak it for my own use case
 
@@ -34,7 +34,7 @@ Sure thing! You can tinker with the package like this:
 
 1. Clone the repo
    ```bash
-   git clone https://github.com/lucassaud/baileys-bottle-new .
+   git clone https://github.com/lucassaud/baileys-bottle-plus .
    ```
 2. Change stuff you wanna change
 3. Build the package
@@ -44,7 +44,7 @@ Sure thing! You can tinker with the package like this:
 4. Install it in another nodejs project from wherever you saved it on your disk
    ```bash
    # inside your other project
-   npm install /path/to/the/repo/named/baileys-bottle-new
+   npm install /path/to/the/repo/named/baileys-bottle-plus
    ```
    or alternatively run the example in typescript (ts)
    ```bash
@@ -59,7 +59,7 @@ Sure thing! You can tinker with the package like this:
 
 ## Found a bug or want to contribute because you're a cool person?
 
-If you found an issue or would like to submit an improvement, please [open an issue here](https://github.com/lucassaud/baileys-bottle-new/issues/new/choose).
+If you found an issue or would like to submit an improvement, please [open an issue here](https://github.com/lucassaud/baileys-bottle-plus/issues/new/choose).
 
 If you actually have some spare time and want to contribute, feel free to open a PR and please don't forget to (create and) link the corresponding issue. <br/>
 It's important so we can keep track of all the issues and feature requests that got resolved by PRs.
