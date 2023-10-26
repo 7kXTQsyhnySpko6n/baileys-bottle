@@ -25,6 +25,6 @@
   },
   "homepage": "https://github.com/lucassaud/baileys-bottle-plus#readme",
   "dependencies": {
-    "baileys-bottle-plus": "^2.1.3"
+    "baileys-bottle-plus": "^2.1.6"
   }
 }

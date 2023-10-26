@@ -8,10 +8,10 @@ import {
 import { Auth } from "./Auth";
 
 @Entity()
-@Unique(["DBId", "id"])
+@Unique(["id"])
 export class Contact {
   @PrimaryGeneratedColumn()
-  DBId: number;
+  // DBId: number;
 
   @ManyToOne(() => Auth, (auth) => auth.chats, { onDelete: "CASCADE" })
   DBAuth: Auth;
