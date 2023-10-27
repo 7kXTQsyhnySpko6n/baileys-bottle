@@ -174,6 +174,7 @@ export default class StoreHandle {
 
 
                 for (const chat of newChats) {
+                    chat.conversationTimestamp = toNumber(chat.conversationTimestamp);
                     await this.repos.chats.upsert(
                         chat,
                         {
@@ -211,7 +212,8 @@ export default class StoreHandle {
             for (const update of updates) {
                 let contact: DBContact;
                 if ((contact = await this.repos.contacts.findOneBy({
-                        id: update.id!,}))
+                    id: update.id!,
+                }))
                 ) {
                     Object.assign(contact, update);
                     await this.repos.contacts.save(contact);
@@ -220,6 +222,9 @@ export default class StoreHandle {
         });
         ev.on("chats.upsert", async (newChats) => {
             for (const chat of newChats) {
+                if('conversationTimestamp' in chat){
+                    chat.conversationTimestamp = toNumber(chat.conversationTimestamp);
+                }
                 await this.repos.chats.upsert(
                     chat,
                     {
