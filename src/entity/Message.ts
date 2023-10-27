@@ -28,7 +28,7 @@ export class Message {
   @Column({ nullable: true, type: "simple-json" })
   message?: proto.IMessage | null;
 
-  @Column({ nullable: true, type: "simple-json" })
+  @Column({ nullable: true, type: "simple-json"})
   messageTimestamp?: number | Long | null;
 
   @Column({ nullable: true, type: "simple-json" })

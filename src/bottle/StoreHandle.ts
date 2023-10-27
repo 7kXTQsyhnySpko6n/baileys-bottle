@@ -49,33 +49,19 @@ export default class StoreHandle {
 
     chats = {
         all: () =>
-            this.repos.chats.findBy({
-                DBAuth: {
-                    id: this.auth.id,
-                },
-            }),
+            this.repos.chats.findBy({}),
         id: (id: string): Promise<DBChat | undefined> =>
             this.repos.chats.findOneBy({
                 id,
-                DBAuth: {
-                    id: this.auth.id,
-                },
             }),
     };
 
     contacts = {
         all: () =>
-            this.repos.contacts.findBy({
-                DBAuth: {
-                    id: this.auth.id,
-                },
-            }),
+            this.repos.contacts.findBy({}),
         id: (id: string): Promise<DBContact | undefined> =>
             this.repos.contacts.findOneBy({
                 id,
-                DBAuth: {
-                    id: this.auth.id,
-                },
             }),
     };
 
@@ -85,9 +71,6 @@ export default class StoreHandle {
                 await this.repos.messageDics.findOne({
                     where: {
                         jid,
-                        DBAuth: {
-                            id: this.auth.id,
-                        },
                     },
                     relations: ["messages"],
                 })
@@ -97,9 +80,6 @@ export default class StoreHandle {
                 await this.repos.messageDics.findOne({
                     where: {
                         jid,
-                        DBAuth: {
-                            id: this.auth.id,
-                        },
                     },
                     relations: ["messages"],
                 })
@@ -108,17 +88,10 @@ export default class StoreHandle {
 
     groupMetadata = {
         all: () =>
-            this.repos.groups.findBy({
-                DBAuth: {
-                    id: this.auth.id,
-                },
-            }),
+            this.repos.groups.findBy({}),
         id: (id: string): Promise<DBGroupMetadata | undefined> =>
             this.repos.groups.findOneBy({
                 id,
-                DBAuth: {
-                    id: this.auth.id,
-                },
             }),
     };
 
@@ -128,9 +101,6 @@ export default class StoreHandle {
                 await this.repos.presenceDics.findOne({
                     where: {
                         id,
-                        DBAuth: {
-                            id: this.auth.id,
-                        },
                     },
                     relations: ["presences"],
                 })
@@ -143,9 +113,6 @@ export default class StoreHandle {
                 await this.repos.presenceDics.findOne({
                     where: {
                         id,
-                        DBAuth: {
-                            id: this.auth.id,
-                        },
                     },
                     relations: ["presences"],
                 })
@@ -153,16 +120,12 @@ export default class StoreHandle {
     };
 
     private contactsUpsert = async (newContacts: Contact[]) => {
-        var contacts = await this.repos.contacts.findBy({
-            DBAuth: {
-                id: this.auth.id,
-            },
-        });
+        var contacts = await this.repos.contacts.findBy({});
         const oldContacts = new Set(Object.keys(contacts));
         for (const contact of newContacts) {
             oldContacts.delete(contact.id);
             contacts[contact.id] = Object.assign(
-                contacts[contact.id] || ({DBAuth: {id: this.auth.id}} as DBContact),
+                contacts[contact.id] || ({} as DBContact),
                 contact
             );
         }
@@ -175,15 +138,11 @@ export default class StoreHandle {
         (await this.repos.messageDics.findOne({
             where: {
                 jid,
-                DBAuth: {
-                    id: this.auth.id,
-                },
             },
             relations: ["messages"],
         })) ||
         (await this.repos.messageDics.save({
             jid,
-            DBAuth: {id: this.auth.id},
             messages: [],
         }));
 
@@ -198,39 +157,37 @@ export default class StoreHandle {
                        isLatest,
                    }) => {
 
-                if(isLatest){
-                    await this.repos.chats.remove(
-                        await this.repos.chats.findBy({DBAuth: {id: this.auth.id}})
-                    )
-
-                    await this.repos.messageDics.remove(
-                        await this.repos.messageDics.findBy({DBAuth: {id: this.auth.id}})
-                    )
+                if (isLatest) {
+                    // await this.repos.chats.clear();
+                    // await this.repos.contacts.clear();
                 }
 
 
+                for (const contact of newContacts) {
+                    await this.repos.contacts.upsert(
+                        contact,
+                        {
+                            conflictPaths: ["id"],
+                        }
+                    );
+                }
 
-                const oldContacts = await this.contactsUpsert(newContacts);
-                await this.repos.contacts.delete({
-                    id: In(Array.from(oldContacts)),
-                    DBAuth: {id: this.auth.id},
-                });
 
-                try {
-                    for (const chat of newChats) {
-                        await this.repos.chats.upsert(
-                            {...chat, DBAuth: {id: this.auth.id}},
-                            {
-                                conflictPaths: ["id", "DBAuth"],
-                            }
-                        );
-                    }
-                } catch {
+                for (const chat of newChats) {
+                    await this.repos.chats.upsert(
+                        chat,
+                        {
+                            conflictPaths: ["id"],
+                        }
+                    );
                 }
 
                 for (const msg of newMessages) {
                     const jid = msg.key.remoteJid!,
                         dictionary = await this.assertMessageList(jid);
+                    if ('messageTimestamp' in msg) {
+                        msg.messageTimestamp = parseInt(msg.messageTimestamp.toString());
+                    }
 
                     let message: DBMessage;
                     if (
@@ -253,11 +210,8 @@ export default class StoreHandle {
         ev.on("contacts.update", async (updates) => {
             for (const update of updates) {
                 let contact: DBContact;
-                if (
-                    (contact = await this.repos.contacts.findOneBy({
-                        id: update.id!,
-                        DBAuth: {id: this.auth.id},
-                    }))
+                if ((contact = await this.repos.contacts.findOneBy({
+                        id: update.id!,}))
                 ) {
                     Object.assign(contact, update);
                     await this.repos.contacts.save(contact);
@@ -265,23 +219,19 @@ export default class StoreHandle {
             }
         });
         ev.on("chats.upsert", async (newChats) => {
-            try {
-                for (const chat of newChats) {
-                    await this.repos.chats.upsert(
-                        {...chat, DBAuth: {id: this.auth.id}},
-                        {
-                            conflictPaths: ["id", "DBAuth"],
-                        }
-                    );
-                }
-            } catch {
+            for (const chat of newChats) {
+                await this.repos.chats.upsert(
+                    chat,
+                    {
+                        conflictPaths: ["id"],
+                    }
+                );
             }
         });
         ev.on("chats.update", async (updates) => {
             for (let update of updates) {
                 var chat = await this.repos.chats.findOneBy({
                     id: update.id!,
-                    DBAuth: {id: this.auth.id},
                 });
                 if (!chat) return;
                 if (update.unreadCount! > 0) {
@@ -298,14 +248,12 @@ export default class StoreHandle {
                 (await this.repos.presenceDics.findOne({
                     where: {
                         id,
-                        DBAuth: {id: this.auth.id},
                     },
                     relations: ["presences"],
                 })) ||
                 ({
                     id,
                     presences: [],
-                    DBAuth: {id: this.auth.id},
                 } as DBPresenceDic);
 
             Object.entries(update).forEach(([id, presence]) => {
@@ -331,7 +279,6 @@ export default class StoreHandle {
                     deletions.map((id) =>
                         this.repos.chats.delete({
                             id,
-                            DBAuth: {id: this.auth.id},
                         })
                     )
                 )
@@ -362,7 +309,6 @@ export default class StoreHandle {
                         type === "notify" &&
                         !(await this.repos.chats.findOneBy({
                             id: jid,
-                            DBAuth: {id: this.auth.id},
                         })) &&
                         ev.emit("chats.upsert", [
                             {
@@ -392,7 +338,6 @@ export default class StoreHandle {
                 const dictionary = await this.repos.messageDics.findOne({
                     where: {
                         jid: item.jid,
-                        DBAuth: {id: this.auth.id},
                     },
                     relations: ["messages"],
                 });
@@ -403,7 +348,6 @@ export default class StoreHandle {
                 const dictionary = await this.repos.messageDics.findOne({
                     where: {
                         jid,
-                        DBAuth: {id: this.auth.id},
                     },
                     relations: ["messages"],
                 });
@@ -422,7 +366,6 @@ export default class StoreHandle {
                 const id = update.id!;
                 let group = await this.repos.groups.findOneBy({
                     id,
-                    DBAuth: {id: this.auth.id},
                 });
                 if (!group) return;
                 Object.assign(group, update);
@@ -433,7 +376,6 @@ export default class StoreHandle {
         ev.on("group-participants.update", async ({id, participants, action}) => {
             const metadata = await this.repos.groups.findOneBy({
                 id,
-                DBAuth: {id: this.auth.id},
             });
             if (!metadata) return;
             switch (action) {
@@ -468,7 +410,6 @@ export default class StoreHandle {
                 const dictionary = await this.repos.messageDics.findOne({
                     where: {
                         jid: key.remoteJid!,
-                        DBAuth: {id: this.auth.id},
                     },
                     relations: ["messages"],
                 });
@@ -485,7 +426,6 @@ export default class StoreHandle {
                 const dictionary = await this.repos.messageDics.findOne({
                     where: {
                         jid: key.remoteJid!,
-                        DBAuth: {id: this.auth.id},
                     },
                     relations: ["messages"],
                 });
@@ -540,7 +480,6 @@ export default class StoreHandle {
             await this.repos.messageDics.findOne({
                 where: {
                     jid,
-                    DBAuth: {id: this.auth.id},
                 },
                 relations: ["messages"],
             })
@@ -551,7 +490,6 @@ export default class StoreHandle {
             await this.repos.messageDics.findOne({
                 where: {
                     jid,
-                    DBAuth: {id: this.auth.id},
                 },
                 relations: ["messages"],
             })
@@ -577,14 +515,12 @@ export default class StoreHandle {
     ): Promise<DBGroupMetadata | undefined> => {
         var group = await this.repos.groups.findOneBy({
             id: jid,
-            DBAuth: {id: this.auth.id},
         });
         if (!group) {
             const metadata = await sock?.groupMetadata(jid);
             metadata &&
             (group = await this.repos.groups.save({
                 ...metadata,
-                DBAuth: {id: this.auth.id},
             }));
         }
 
@@ -598,7 +534,6 @@ export default class StoreHandle {
         const dictionary = await this.repos.messageDics.findOne({
             where: {
                 jid: remoteJid!,
-                DBAuth: {id: this.auth.id},
             },
             relations: ["messages"],
         });
@@ -611,6 +546,6 @@ export default class StoreHandle {
         await this.repos.messages.clear();
     };
     closeDB = async () => {
-       await this.ds.destroy();
+        await this.ds.destroy();
     };
 }

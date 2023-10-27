@@ -10,13 +10,11 @@ import { Auth } from "./Auth";
 import { Presence } from "./Presence";
 
 @Entity()
-@Unique(["DBId"])
+@Unique(["id"])
 export class PresenceDic {
   @PrimaryGeneratedColumn()
   DBId: number;
 
-  @ManyToOne(() => Auth, (auth) => auth.chats, { onDelete: "CASCADE" })
-  DBAuth: Auth;
 
   @Column()
   id: string;

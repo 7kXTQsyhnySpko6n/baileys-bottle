@@ -15,9 +15,6 @@ export class MessageDic {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Auth, (auth) => auth.chats, { onDelete: "CASCADE" })
-  DBAuth: Auth;
-
   @Column()
   jid: string;
 

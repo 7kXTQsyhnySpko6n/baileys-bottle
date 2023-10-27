@@ -11,12 +11,9 @@ import { Auth } from "./Auth";
 @Unique(["id"])
 export class Contact {
   @PrimaryGeneratedColumn()
-  // DBId: number;
+  autoId:number
 
-  @ManyToOne(() => Auth, (auth) => auth.chats, { onDelete: "CASCADE" })
-  DBAuth: Auth;
-
-  @Column({ unique: true })
+  @Column()
   id: string;
 
   @Column({ nullable: true })
@@ -25,12 +22,9 @@ export class Contact {
   @Column({ nullable: true })
   notify?: string;
 
-  @Column({ nullable: true })
-  verifiedName?: string;
+
 
   @Column({ nullable: true })
   imgUrl?: string | "changed";
 
-  @Column({ nullable: true })
-  status?: string;
 }

@@ -9,15 +9,9 @@ import {
 import { Auth } from "./Auth";
 
 @Entity()
-@Unique(["DBId"])
+@Unique(["id"])
 export class GroupMetadata {
   @PrimaryGeneratedColumn()
-  DBId: number;
-
-  @ManyToOne(() => Auth, (auth) => auth.chats, { onDelete: "CASCADE" })
-  DBAuth: Auth;
-
-  @Column()
   id: string;
 
   @Column({ nullable: true })
