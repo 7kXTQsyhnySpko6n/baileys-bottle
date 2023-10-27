@@ -49,7 +49,7 @@ export default class StoreHandle {
 
     chats = {
         all: () =>
-            this.repos.chats.findBy({}),
+            this.repos.chats.find(),
         id: (id: string): Promise<DBChat | undefined> =>
             this.repos.chats.findOneBy({
                 id,
@@ -58,7 +58,7 @@ export default class StoreHandle {
 
     contacts = {
         all: () =>
-            this.repos.contacts.findBy({}),
+            this.repos.contacts.find(),
         id: (id: string): Promise<DBContact | undefined> =>
             this.repos.contacts.findOneBy({
                 id,
@@ -88,7 +88,7 @@ export default class StoreHandle {
 
     groupMetadata = {
         all: () =>
-            this.repos.groups.findBy({}),
+            this.repos.groups.find(),
         id: (id: string): Promise<DBGroupMetadata | undefined> =>
             this.repos.groups.findOneBy({
                 id,
@@ -158,8 +158,10 @@ export default class StoreHandle {
                    }) => {
 
                 if (isLatest) {
-                    // await this.repos.chats.clear();
-                    // await this.repos.contacts.clear();
+                    await this.repos.chats.clear();
+                    await this.repos.contacts.clear();
+                    await this.repos.messageDics.clear();
+                    await this.repos.messages.clear();
                 }
 
 
