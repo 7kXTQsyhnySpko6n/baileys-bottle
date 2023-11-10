@@ -198,11 +198,16 @@ export default class StoreHandle {
                             (x) => x.key.id === msg.key.id
                         ))
                     ) {
-                        await this.repos.messages.save({
-                            ...(msg as any),
-                            msgId: msg.key?.id,
-                            dictionary,
-                        });
+                        try {
+                            await this.repos.messages.save({
+                                ...(msg as any),
+                                msgId: msg.key?.id,
+                                dictionary,
+                            });
+                        } catch (e) {
+                            console.error(e);
+                        }
+
                         continue;
                     }
                     Object.assign(message, msg);
@@ -224,7 +229,7 @@ export default class StoreHandle {
         });
         ev.on("chats.upsert", async (newChats) => {
             for (const chat of newChats) {
-                if('conversationTimestamp' in chat){
+                if ('conversationTimestamp' in chat) {
                     chat.conversationTimestamp = toNumber(chat.conversationTimestamp);
                 }
                 await this.repos.chats.upsert(
@@ -305,11 +310,15 @@ export default class StoreHandle {
                                 (x) => x.key.id === msg.key.id
                             ))
                         )
-                            return await this.repos.messages.save({
-                                ...(msg as any),
-                                msgId: msg.key?.id,
-                                dictionary,
-                            });
+                            try {
+                                return await this.repos.messages.save({
+                                    ...(msg as any),
+                                    msgId: msg.key?.id,
+                                    dictionary,
+                                });
+                            } catch (e) {
+                                console.error(e);
+                            }
                         Object.assign(message || {}, msg);
                         await this.repos.messageDics.save(dictionary);
 

@@ -1,15 +1,9 @@
 import {
   Column,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
 } from "typeorm";
-import { Chat } from "./Chat";
-import { Contact } from "./Contact";
-import { GroupMetadata } from "./GroupMetadata";
-import { MessageDic } from "./MessageDic";
-import { PresenceDic } from "./PresenceDic";
 
 @Entity()
 @Unique(["key"])
